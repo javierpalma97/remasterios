@@ -1,0 +1,55 @@
+name: iOS - Remasterios (sideload IPA)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-unsigned-ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || sudo xcode-select -p
+
+      - name: Show versions
+        run: xcodebuild -version; swift --version
+
+      - name: Build app (sin firma, para sideload)
+        run: |
+          xcodebuild -list -project Remasterios.xcodeproj || true
+          xcodebuild \
+            -project Remasterios.xcodeproj \
+            -target Remasterios \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Empaquetar IPA sin firma
+        run: |
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
+          echo "APP: $APP_PATH"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r Remasterios-unsigned.ipa Payload
+          rm -rf Payload
+
+      - name: Subir IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Remasterios-unsigned-ipa
+          path: Remasterios-unsigned.ipa
+
+# CÓMO FIRRARLO PARA SIDELOAD (SideStore / AltStore / Sideloadly / TrollStore):
+# 1. Descarga el artefacto Remasterios-unsigned.ipa de la pestaña Actions.
+# 2. Fírmalo con tu Apple ID:
+#    - AltStore/SideStore: abre el .ipa directamente e instálalo.
+#    - Sideloadly: arrastra el .ipa y firma con tu cuenta.
+#    - TrollStore (si compatible): instala el .ipa sin firmar.
+# 3. En iPhone ve a Ajustes > General > VPN y gestión de dispositivos > Confiar.

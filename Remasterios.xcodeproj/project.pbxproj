@@ -1,0 +1,52 @@
+// !$*UTF8*$!
+{
+    archiveVersion = 1;
+    classes = {};
+    objectVersion = 56;
+    objects = {
+        A10000000000000000000001 = { isa = PBXProject; buildConfigurationList = C00001; compatibilityVersion = "Xcode 14.0"; developmentRegion = es; mainGroup = G00001; productRefGroup = G00002; projectDirPath = ""; targets = ( T00001 ); };
+        T00001 = { isa = PBXNativeTarget; buildConfigurationList = C00002; buildPhases = ( S00001, F00001, R00001 ); buildRules = (); name = Remasterios; productName = Remasterios; productReference = P00001; productType = "com.apple.product-type.application"; };
+        P00001 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Remasterios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+        G00001 = { isa = PBXGroup; children = ( G00002, G00010 ); sourceTree = "<group>"; };
+        G00002 = { isa = PBXGroup; children = ( P00001 ); name = Products; sourceTree = "<group>"; };
+        G00010 = { isa = PBXGroup; children = ( F_APP, F_ROUTE, F_CONTENT, F_MODELS, F_INNER, F_INTEG, F_LYRICS, F_DL, F_PLAYER, F_SET, F_EXTRA, F_HOME, F_PDETAIL, F_SVIEWS ); path = Remasterios; sourceTree = "<group>"; };
+        F_APP = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemasteriosApp.swift; sourceTree = "<group>"; };
+        F_ROUTE = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+        F_CONTENT = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+        F_MODELS = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/MediaModels.swift"; sourceTree = "<group>"; };
+        F_INNER = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Innertube/InnerTube.swift"; sourceTree = "<group>"; };
+        F_INTEG = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Integrations/Integrations.swift"; sourceTree = "<group>"; };
+        F_LYRICS = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Lyrics/LyricsEngine.swift"; sourceTree = "<group>"; };
+        F_DL = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Playback/DownloadSleep.swift"; sourceTree = "<group>"; };
+        F_PLAYER = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Playback/PlayerService.swift"; sourceTree = "<group>"; };
+        F_SET = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Settings/SettingsStore.swift"; sourceTree = "<group>"; };
+        F_EXTRA = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Extras/ExtrasViews.swift"; sourceTree = "<group>"; };
+        F_HOME = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Home/HomeSearchLibrary.swift"; sourceTree = "<group>"; };
+        F_PDETAIL = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Player/PlayerDetail.swift"; sourceTree = "<group>"; };
+        F_SVIEWS = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Settings/SettingsViews.swift"; sourceTree = "<group>"; };
+        S00001 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( B_APP, B_ROUTE, B_CONTENT, B_MODELS, B_INNER, B_INTEG, B_LYRICS, B_DL, B_PLAYER, B_SET, B_EXTRA, B_HOME, B_PDETAIL, B_SVIEWS ); runOnlyForDeploymentPostprocessing = 0; };
+        B_APP = { isa = PBXBuildFile; fileRef = F_APP; };
+        B_ROUTE = { isa = PBXBuildFile; fileRef = F_ROUTE; };
+        B_CONTENT = { isa = PBXBuildFile; fileRef = F_CONTENT; };
+        B_MODELS = { isa = PBXBuildFile; fileRef = F_MODELS; };
+        B_INNER = { isa = PBXBuildFile; fileRef = F_INNER; };
+        B_INTEG = { isa = PBXBuildFile; fileRef = F_INTEG; };
+        B_LYRICS = { isa = PBXBuildFile; fileRef = F_LYRICS; };
+        B_DL = { isa = PBXBuildFile; fileRef = F_DL; };
+        B_PLAYER = { isa = PBXBuildFile; fileRef = F_PLAYER; };
+        B_SET = { isa = PBXBuildFile; fileRef = F_SET; };
+        B_EXTRA = { isa = PBXBuildFile; fileRef = F_EXTRA; };
+        B_HOME = { isa = PBXBuildFile; fileRef = F_HOME; };
+        B_PDETAIL = { isa = PBXBuildFile; fileRef = F_PDETAIL; };
+        B_SVIEWS = { isa = PBXBuildFile; fileRef = F_SVIEWS; };
+        F00001 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        R00001 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        C00001 = { isa = XCConfigurationList; buildConfigurations = ( CDEBUG_P, CRELEASE_P ); defaultConfigurationIsVisible = 0; };
+        C00002 = { isa = XCConfigurationList; buildConfigurations = ( CDEBUG_T, CRELEASE_T ); defaultConfigurationIsVisible = 0; };
+        CDEBUG_P = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 5.9; }; name = Debug; };
+        CRELEASE_P = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 5.9; }; name = Release; };
+        CDEBUG_T = { isa = XCBuildConfiguration; buildSettings = { ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGNING_ALLOWED = YES; INFOPLIST_FILE = "Remasterios/Info.plist"; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks"; PRODUCT_BUNDLE_IDENTIFIER = "com.remasterios.music"; PRODUCT_NAME = Remasterios; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.9; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+        CRELEASE_T = { isa = XCBuildConfiguration; buildSettings = { ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGNING_ALLOWED = YES; INFOPLIST_FILE = "Remasterios/Info.plist"; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks"; PRODUCT_BUNDLE_IDENTIFIER = "com.remasterios.music"; PRODUCT_NAME = Remasterios; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.9; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+    };
+    rootObject = A10000000000000000000001;
+}
