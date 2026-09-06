@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// Puerto Swift de innertube/ (InnerTube.kt + YouTube.kt + pages/*).
 /// Cliente YouTube Music: search, player, browse, next, playlist, library, charts, etc.
@@ -21,6 +22,7 @@ final class InnerTubeClient {
         body.forEach { ctx[$0.key] = $0.value }
         req.httpBody = try JSONSerialization.data(withJSONObject: ["context": ctx] + body)
         if !cookie.isEmpty { req.setValue(cookie, forHTTPHeaderField: "Cookie") }
+        for (k, v) in authHeaders() { req.setValue(v, forHTTPHeaderField: k) }
         let (data, resp) = try await session.data(for: req)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
             throw InnerTubeError.http((resp as? HTTPURLResponse)?.statusCode ?? -1)
@@ -37,6 +39,7 @@ final class InnerTubeClient {
         body.forEach { ctx[$0.key] = $0.value }
         req.httpBody = try JSONSerialization.data(withJSONObject: ["context": ctx] + body)
         if !cookie.isEmpty { req.setValue(cookie, forHTTPHeaderField: "Cookie") }
+        for (k, v) in authHeaders() { req.setValue(v, forHTTPHeaderField: k) }
         let (data, resp) = try await session.data(for: req)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
             throw InnerTubeError.http((resp as? HTTPURLResponse)?.statusCode ?? -1)
@@ -50,6 +53,25 @@ final class InnerTubeClient {
                            "hl": s.contentLanguage, "gl": s.contentCountry,
                            "visitorData": visitorData.isEmpty ? nil : visitorData as Any],
                 "user": [:]] as [String: Any]
+    }
+
+    // MARK: Auth por cookie (igual que Metrolist/InnerTubeX, sin OAuth2)
+    /// YouTube acepta mutaciones (likes, playlists) con cookie + cabecera
+    /// "Authorization: SAPISIDHASH <ts>_<sha1(ts + SAPISID + origin)>".
+    private func authHeaders() -> [String: String] {
+        guard !cookie.isEmpty else { return [:] }
+        var values: [String: String] = [:]
+        for part in cookie.split(separator: ";") {
+            let kv = part.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+            if kv.count == 2 { values[kv[0]] = kv[1] }
+        }
+        guard let sapisid = values["SAPISID"] ?? values["__Secure-3PAPISID"] else { return [:] }
+        let origin = "https://music.youtube.com"
+        let ts = String(Int(Date().timeIntervalSince1970))
+        let digest = Insecure.SHA1.hash(data: Data("\(ts) \(sapisid) \(origin)".utf8))
+            .map { String(format: "%02x", $0) }.joined()
+        return ["X-Origin": origin,
+                "Authorization": "SAPISIDHASH \(ts)_\(digest)"]
     }
 
     // MARK: Endpoints principales (firmas espejo de YouTube.kt)
