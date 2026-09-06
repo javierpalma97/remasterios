@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var tab = 0
     @State private var showPlayer = false
     @State private var showQueue = false
+    @State private var showWelcome = false
 
     var body: some View {
         TabView(selection: $tab) {
@@ -50,6 +51,12 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showPlayer) { PlayerView().presentationDetents([.large]) }
         .sheet(isPresented: $showQueue) { QueueView().presentationDetents([.medium, .large]) }
+        .onAppear {
+            if SettingsStore.shared.innerTubeCookie.isEmpty && !UserDefaults.standard.bool(forKey: "welcomeDone") {
+                showWelcome = true
+            }
+        }
+        .sheet(isPresented: $showWelcome) { WelcomeView() }
     }
 }
 
@@ -90,6 +97,48 @@ struct RouteView: View {
         case .topPlaylist(let p): TopPlaylistView(period: p, path: $path)
         case .autoPlaylist(let k): AutoPlaylistView(kind: k, path: $path)
         default: Text("Pantalla \(String(describing: route))")
+        }
+    }
+}
+
+/// Pantalla de bienvenida + login (antes solo estaba en Ajustes → Cuenta).
+/// Metrolist usa login por cookie de YouTube Music: se pega aquí una vez.
+struct WelcomeView: View {
+    @EnvironmentObject var settings: SettingsStore
+    @Environment(\.dismiss) var dismiss
+    @State private var cookie = ""
+    @State private var saved = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Para ver tus canciones, listas y recomendaciones necesitas conectar tu cuenta de YouTube Music.")
+                }
+                Section("Cómo conseguir la cookie") {
+                    Text("1. En Safari abre music.youtube.com e inicia sesión.\n2. Copia el valor de la cookie (usa la app 'EditCookie' o similar).\n3. Pégala aquí abajo.")
+                        .font(.callout)
+                }
+                Section("Cookie") {
+                    TextEditor(text: $cookie)
+                        .frame(height: 120)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                }
+                Button("Guardar y continuar") {
+                    settings.innerTubeCookie = cookie.trimmingCharacters(in: .whitespacesAndNewlines)
+                    UserDefaults.standard.set(true, forKey: "welcomeDone")
+                    saved = true
+                    dismiss()
+                }
+                .disabled(cookie.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                Button("Continuar sin cuenta (solo demo)") {
+                    UserDefaults.standard.set(true, forKey: "welcomeDone")
+                    dismiss()
+                }
+                if saved { Text("Cuenta guardada. Ya puedes buscar música real.").foregroundStyle(.green) }
+            }
+            .navigationTitle("Bienvenido a Remasterios")
         }
     }
 }

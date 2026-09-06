@@ -28,6 +28,22 @@ final class InnerTubeClient {
         return try JSONDecoder().decode(T.self, from: data)
     }
 
+    /// Variante que devuelve JSON crudo (para parseo tolerante de youtubei).
+    private func postJSON(_ endpoint: String, body: [String: Any]) async throws -> Any {
+        var req = URLRequest(url: base.appendingPathComponent(endpoint).appendingQueryParameters(["key": apiKey, "prettyPrint": "false"]))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var ctx = defaultContext()
+        body.forEach { ctx[$0.key] = $0.value }
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["context": ctx] + body)
+        if !cookie.isEmpty { req.setValue(cookie, forHTTPHeaderField: "Cookie") }
+        let (data, resp) = try await session.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw InnerTubeError.http((resp as? HTTPURLResponse)?.statusCode ?? -1)
+        }
+        return try JSONSerialization.jsonObject(with: data)
+    }
+
     private func defaultContext() -> [String: Any] {
         let s = SettingsStore.shared
         return ["client": ["clientName": "WEB_REMIX", "clientVersion": "1.20240101.00",
@@ -69,6 +85,120 @@ final class InnerTubeClient {
     }
     func removeFromPlaylist(playlistId: String, setVideoId: String) async throws -> EmptyDTO {
         try await post("browse/edit_playlist", body: ["playlistId": playlistId, "actions": [["setVideoId": setVideoId, "action": "ACTION_REMOVE_VIDEO"]]])
+    }
+
+    // MARK: Búsqueda real (parseo tolerante del JSON youtubei → YTSong)
+    func searchSongs(query: String) async -> [YTSong] {
+        do {
+            let json = try await postJSON("search", body: ["query": query])
+            let songs = Self.parseSearchSongs(json)
+            if !songs.isEmpty { return songs }
+        } catch {}
+        return []
+    }
+
+    /// Navega diccionarios/arrays por claves (los índices numéricos recorren arrays).
+    private static func dig(_ obj: Any?, _ keys: String...) -> Any? {
+        var cur = obj
+        for k in keys {
+            if let d = cur as? [String: Any] {
+                cur = d[k]
+            } else if let i = Int(k), let a = cur as? [Any], a.indices.contains(i) {
+                cur = a[i]
+            } else {
+                return nil
+            }
+        }
+        return cur
+    }
+
+    private static func parseDuration(_ s: String) -> Double? {
+        let parts = s.split(separator: ":").compactMap { Double($0) }
+        if parts.count == 2 { return parts[0] * 60 + parts[1] }
+        if parts.count == 3 { return parts[0] * 3600 + parts[1] * 60 + parts[2] }
+        return nil
+    }
+
+    static func parseSearchSongs(_ json: Any) -> [YTSong] {
+        guard let contents = (json as? [String: Any])?["contents"] as? [String: Any],
+              let tabbed = contents["tabbedSearchResultsRenderer"] as? [String: Any],
+              let tabs = tabbed["tabs"] as? [[String: Any]] else { return [] }
+        var out: [YTSong] = []
+        for tab in tabs {
+            guard let content = dig(tab, "tabRenderer", "content") as? [String: Any],
+                  let sections = dig(content, "sectionListRenderer", "contents") as? [[String: Any]] else { continue }
+            for section in sections {
+                var shelves: [[String: Any]] = []
+                if let s = section["musicShelfRenderer"] as? [String: Any] { shelves.append(s) }
+                if let itemSec = section["itemSectionRenderer"] as? [String: Any],
+                   let arr = itemSec["contents"] as? [[String: Any]] {
+                    for c in arr {
+                        if let s = c["musicShelfRenderer"] as? [String: Any] { shelves.append(s) }
+                    }
+                }
+                for shelf in shelves {
+                    guard let items = shelf["contents"] as? [[String: Any]] else { continue }
+                    for item in items {
+                        if let r = item["musicResponsiveListItemRenderer"] as? [String: Any],
+                           let song = parseListItem(r) {
+                            out.append(song)
+                        }
+                    }
+                }
+            }
+        }
+        return out
+    }
+
+    private static func columnText(_ col: [String: Any]?) -> (String, [[String: Any]]) {
+        guard let t = dig(col ?? [:], "musicResponsiveListItemFlexColumnRenderer", "text") as? [String: Any] else {
+            return ("", [])
+        }
+        let runs = t["runs"] as? [[String: Any]] ?? []
+        let text = runs.compactMap { $0["text"] as? String }.joined()
+        return (text, runs)
+    }
+
+    private static func parseListItem(_ r: [String: Any]) -> YTSong? {
+        let videoId = (dig(r, "overlay", "musicItemThumbnailOverlayRenderer", "content",
+                           "musicPlayButtonRenderer", "playNavigationEndpoint",
+                           "watchEndpoint", "videoId") as? String)
+            ?? (dig(r, "playlistItemData", "videoId") as? String)
+        guard let id = videoId, !id.isEmpty else { return nil }
+        guard let flex = r["flexColumns"] as? [[String: Any]], !flex.isEmpty else { return nil }
+        let (title, _) = columnText(flex[0])
+        guard !title.isEmpty else { return nil }
+
+        var artists: [YTArtistRef] = []
+        var album: YTAlbumRef? = nil
+        var duration: Double? = nil
+        if flex.count > 1 {
+            let (_, runs) = columnText(flex[1])
+            for run in runs {
+                let text = (run["text"] as? String) ?? ""
+                if text.isEmpty || text == " • " { continue }
+                if let d = parseDuration(text) { duration = d; continue }
+                let browseId = dig(run, "navigationEndpoint", "browseEndpoint", "browseId") as? String
+                if let b = browseId, !b.isEmpty {
+                    if b.hasPrefix("MPREb_") { album = YTAlbumRef(id: b, name: text) }
+                    else { artists.append(YTArtistRef(id: b, name: text)) }
+                } else if artists.isEmpty && text.rangeOfCharacter(from: .decimalDigits) == nil {
+                    artists.append(YTArtistRef(id: nil, name: text))
+                }
+            }
+        }
+
+        let thumbsRaw = dig(r, "thumbnail", "musicThumbnailRenderer", "thumbnail", "thumbnails") as? [[String: Any]] ?? []
+        let thumbs = thumbsRaw.compactMap { d -> YTThumb? in
+            guard let url = d["url"] as? String else { return nil }
+            return YTThumb(url: url, width: d["width"] as? Int, height: d["height"] as? Int)
+        }
+        let badges = r["badges"] as? [[String: Any]] ?? []
+        let explicit = badges.contains {
+            (dig($0, "musicInlineBadgeRenderer", "icon", "iconType") as? String) == "MUSIC_EXPLICIT_BADGE"
+        }
+        return YTSong(id: id, title: title, artists: artists, album: album,
+                      duration: duration, thumbnails: thumbs, explicit: explicit)
     }
 }
 
@@ -114,8 +244,9 @@ final class MusicRepository {
         return DemoData.home
     }
     func search(query: String) async -> [YTSong] {
-        do { _ = try await InnerTubeClient.shared.search(query: query) } catch {}
         if query.isEmpty { return [] }
+        let live = await InnerTubeClient.shared.searchSongs(query: query)
+        if !live.isEmpty { return live }
         return DemoData.songs.filter { $0.title.localizedCaseInsensitiveContains(query) || query.count < 2 }
     }
     func streamURL(for videoId: String) async throws -> URL {

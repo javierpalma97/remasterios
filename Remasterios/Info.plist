@@ -7,6 +7,11 @@
     <key>CFBundleDisplayName</key><string>Remasterios</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+    <key>UILaunchScreen</key>
+    <dict>
+        <key>UIColorName</key>
+        <string>LaunchBackground</string>
+    </dict>
     <key>LSRequiresIPhoneOS</key><true/>
     <key>CFBundleIdentifier</key><string>com.remasterios.music</string>
     <key>CFBundleShortVersionString</key><string>1.0</string>

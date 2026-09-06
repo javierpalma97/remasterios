@@ -9,7 +9,7 @@
         P00001 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Remasterios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
         G00001 = { isa = PBXGroup; children = ( G00002, G00010 ); sourceTree = "<group>"; };
         G00002 = { isa = PBXGroup; children = ( P00001 ); name = Products; sourceTree = "<group>"; };
-        G00010 = { isa = PBXGroup; children = ( F_APP, F_ROUTE, F_CONTENT, F_MODELS, F_INNER, F_INTEG, F_LYRICS, F_DL, F_PLAYER, F_SET, F_EXTRA, F_HOME, F_PDETAIL, F_SVIEWS ); path = Remasterios; sourceTree = "<group>"; };
+        G00010 = { isa = PBXGroup; children = ( F_APP, F_ROUTE, F_CONTENT, F_MODELS, F_INNER, F_INTEG, F_LYRICS, F_DL, F_PLAYER, F_SET, F_EXTRA, F_HOME, F_PDETAIL, F_SVIEWS, F_XCASSETS ); path = Remasterios; sourceTree = "<group>"; };
         F_APP = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemasteriosApp.swift; sourceTree = "<group>"; };
         F_ROUTE = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
         F_CONTENT = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -24,6 +24,7 @@
         F_HOME = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Home/HomeSearchLibrary.swift"; sourceTree = "<group>"; };
         F_PDETAIL = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Player/PlayerDetail.swift"; sourceTree = "<group>"; };
         F_SVIEWS = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Settings/SettingsViews.swift"; sourceTree = "<group>"; };
+        F_XCASSETS = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
         S00001 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( B_APP, B_ROUTE, B_CONTENT, B_MODELS, B_INNER, B_INTEG, B_LYRICS, B_DL, B_PLAYER, B_SET, B_EXTRA, B_HOME, B_PDETAIL, B_SVIEWS ); runOnlyForDeploymentPostprocessing = 0; };
         B_APP = { isa = PBXBuildFile; fileRef = F_APP; };
         B_ROUTE = { isa = PBXBuildFile; fileRef = F_ROUTE; };
@@ -39,8 +40,9 @@
         B_HOME = { isa = PBXBuildFile; fileRef = F_HOME; };
         B_PDETAIL = { isa = PBXBuildFile; fileRef = F_PDETAIL; };
         B_SVIEWS = { isa = PBXBuildFile; fileRef = F_SVIEWS; };
+        B_XCASSETS = { isa = PBXBuildFile; fileRef = F_XCASSETS; };
         F00001 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-        R00001 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        R00001 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( B_XCASSETS ); runOnlyForDeploymentPostprocessing = 0; };
         C00001 = { isa = XCConfigurationList; buildConfigurations = ( CDEBUG_P, CRELEASE_P ); defaultConfigurationIsVisible = 0; };
         C00002 = { isa = XCConfigurationList; buildConfigurations = ( CDEBUG_T, CRELEASE_T ); defaultConfigurationIsVisible = 0; };
         CDEBUG_P = { isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SWIFT_VERSION = 5.9; }; name = Debug; };
