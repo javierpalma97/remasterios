@@ -22,7 +22,7 @@ jobs:
           xcodebuild -list -project Remasterios.xcodeproj || true
           xcodebuild \
             -project Remasterios.xcodeproj \
-            -target Remasterios \
+            -scheme Remasterios \
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -derivedDataPath build \
