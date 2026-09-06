@@ -38,16 +38,26 @@ final class DownloadManager: ObservableObject {
         try? FileManager.default.removeItem(at: baseDir.appendingPathComponent("\(videoId).m4a"))
     }
 
+    private func fileSize(of url: URL) -> Int {
+        let keys: Set<URLResourceKey> = [.fileSizeKey]
+        return (try? url.resourceValues(forKeys: keys))?.fileSize ?? 0
+    }
+
+    private func modDate(of url: URL) -> Date {
+        let keys: Set<URLResourceKey> = [.contentModificationDateKey]
+        return (try? url.resourceValues(forKeys: keys))?.contentModificationDate ?? Date.distantPast
+    }
+
     /// LRU según MaxSongCacheSize (MB). -1 = ilimitado en Android; aquí 0 = ilimitado.
     func enforceQuota() {
         let maxMB = SettingsStore.shared.maxSongCacheMB
         guard maxMB > 0 else { return }
         guard let files = try? FileManager.default.contentsOfDirectory(at: baseDir, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) else { return }
-        var total = files.reduce(0) { $0 + (try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) ?? 0 }
+        var total: Int = files.reduce(0) { $0 + fileSize(of: $1) }
         let limit = maxMB * 1024 * 1024
-        let sorted = files.sorted { (try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate ?? Date.distantPast) ?? Date.distantPast < (try? $1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate ?? Date.distantPast) ?? Date.distantPast }
+        let sorted = files.sorted { modDate(of: $0) < modDate(of: $1) }
         for f in sorted where total > limit {
-            let size = (try? f.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            let size = fileSize(of: f)
             try? FileManager.default.removeItem(at: f)
             total -= size
         }
@@ -55,7 +65,7 @@ final class DownloadManager: ObservableObject {
 
     func cacheSizeMB() -> Double {
         guard let files = try? FileManager.default.contentsOfDirectory(at: baseDir, includingPropertiesForKeys: [.fileSizeKey]) else { return 0 }
-        let bytes = files.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
+        let bytes: Int = files.reduce(0) { $0 + fileSize(of: $1) }
         return Double(bytes) / 1024 / 1024
     }
     func clearAll() {

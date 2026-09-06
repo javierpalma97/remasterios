@@ -102,11 +102,14 @@ final class ListenTogetherSession: ObservableObject {
     }
     private func listen() {
         socket?.receive { [weak self] result in
-            if case .success(let msg) = result {
-                // TODO: aplicar drift-correction + cola/volume sync (ServerClock/Protocol)
-                _ = msg
+            Task { @MainActor in
+                guard let self else { return }
+                if case .success(let msg) = result {
+                    // TODO: aplicar drift-correction + cola/volume sync (ServerClock/Protocol)
+                    _ = msg
+                }
+                self.listen()
             }
-            self?.listen()
         }
     }
 }
