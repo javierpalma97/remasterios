@@ -31,14 +31,22 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             build
 
-      - name: Empaquetar IPA sin firma
+      - name: Firma ad-hoc (bundle bien formado para refirmar)
         run: |
           APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
           echo "APP: $APP_PATH"
+          codesign --force --sign - --timestamp=none "$APP_PATH"
+          codesign -dv "$APP_PATH" || true
+
+      - name: Empaquetar IPA sin firma
+        run: |
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
+          rm -rf Payload Remasterios-unsigned.ipa
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
-          zip -r Remasterios-unsigned.ipa Payload
+          ditto -c -k --sequesterRsrc --keepParent Payload Remasterios-unsigned.ipa
           rm -rf Payload
+          ls -lh Remasterios-unsigned.ipa
 
       - name: Subir IPA
         uses: actions/upload-artifact@v4
